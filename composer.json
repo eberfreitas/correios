@@ -1,0 +1,16 @@
+{
+    "name": "eberfreitas/correios",
+    "description": "Um pacote para interagir com serviços dos Correios.",
+    "type": "library",
+    "require": {
+        "tburry/pquery": "1.*",
+        "guzzle/guzzle": "3.*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Éber Freitas Dias",
+            "email": "eber.freitas@gmail.com"
+        }
+    ]
+}
