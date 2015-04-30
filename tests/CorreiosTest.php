@@ -34,6 +34,7 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
     public function testAjustaPacote()
     {
         $params = [
+            'nVlPeso' => 0.3,
             'nCdFormato' => 1,
             'nVlDiametro' => 0,
             'nVlComprimento' => 16,
@@ -45,8 +46,9 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($result, $params);
 
         $params = [
+            'nVlPeso' => 200,
             'nCdFormato' => 1,
-            'nVlDiametro' => 100,
+            'nVlDiametro' => 200,
             'nVlComprimento' => 200,
             'nVlLargura' => 200,
             'nVlAltura' => 200
@@ -55,6 +57,7 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
         $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
 
         $expected = [
+            'nVlPeso' => 30,
             'nCdFormato' => 1,
             'nVlDiametro' => 0,
             'nVlComprimento' => 66,
@@ -65,10 +68,11 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($result, $expected);
 
         $params = [
+            'nVlPeso' => 1,
             'nCdFormato' => 2,
             'nVlDiametro' => 5,
             'nVlComprimento' => 18,
-            'nVlLargura' => 11,
+            'nVlLargura' => 0,
             'nVlAltura' => 0
         ];
 
@@ -76,6 +80,7 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($result, $params);
 
         $params = [
+            'nVlPeso' => 0.150,
             'nCdFormato' => 2,
             'nVlDiametro' => 200,
             'nVlComprimento' => 200,
@@ -85,6 +90,15 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
 
         $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
 
-        var_dump($result); die();
+        $expected = [
+            'nVlPeso' => 0.3,
+            'nCdFormato' => 2,
+            'nVlDiametro' => 62,
+            'nVlComprimento' => 76,
+            'nVlLargura' => 0,
+            'nVlAltura' => 0
+        ];
+
+        $this->assertEquals($result, $expected);
     }
 }
