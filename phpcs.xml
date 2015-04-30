@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="Personalizado">
+    <description>Ruleset personalizado</description>
+    <rule ref="PSR2" />
+    <rule ref="Squiz.Commenting.FunctionComment" />
+    <rule ref="Squiz.Commenting.FunctionCommentThrowTag" />
+    <rule ref="Squiz.Commenting.ClassComment" />
+    <rule ref="Squiz.Commenting.FileComment" />
+    <rule ref="Squiz.Commenting.VariableComment" />
+</ruleset>
