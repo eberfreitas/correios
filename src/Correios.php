@@ -2,6 +2,10 @@
 
 namespace Eberfreitas\Correios;
 
+/**
+ * Correios
+ * Um pacote para interagir com serviços dos Correios
+ */
 class Correios
 {
 
@@ -16,16 +20,30 @@ class Correios
     const ROLO = 2;
     const ENVELOPE = 3;
 
+    /** @var object Objeto que vamos utilizar pra realizar chamadas aos endpoints. */
     public $httpAdapter;
 
+    /** @var string Guarda a informação de usuário dos Correios, se houver. */
     public $usuario;
 
+    /** @var string Guarda senha do usuário dos Correios, se houver. */
     public $senha;
 
+    /** @var array Lista de endpoints que serão utilizados para realizar consultas diversas. */
     protected $endpoints = [
         'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx'
     ];
 
+    /**
+     * Construtor da classe.
+     *
+     * @param array $options Aqui você pode injetar um objeto que será usando
+     *     como `$httpAdapter`, passar seu nome de usuário e senha. Para usar
+     *     outro adaptador para realizar as chamadas aos endpoints, veja a
+     *     documentação da lib.
+     *
+     * @return void
+     */
     public function __construct(array $options = [])
     {
         $defaultOptions = [
@@ -47,7 +65,24 @@ class Correios
         $this->senha = is_null($options['senha']) ? null : $options['senha'];
     }
 
-    public function calculaFrete(array $options = [])
+    /**
+     * Use este método para calcular o frete e prazo de entrega de um CEP para
+     * outro CEP.
+     *
+     * @link http://bit.ly/1jwSH9i Documentação do webservice dos Correios.
+     *
+     * @param array   $options Recebe um array com diversos valores que vão
+     *     definir como o frete será calculado. Consultar a variável
+     *     `$defaultOptions` para saber quais são as chaves que devem ser
+     *     preenchidas e que tipo de valor elas aceitam.
+     * @param boolean $fix     Se verdadeiro, este método irá corrigir qualquer
+     *     irregularidade referente a tamanhos de pacotes, peso, etc., fazendo
+     *     com que o valor do frete seja efetivamente calculado apesar da
+     *     informação de valores errados.
+     *
+     * @return array
+     */
+    public function calculaFrete(array $options = [], $fix = true)
     {
         $defaultOptions = [
             'usuario' => null,
@@ -68,6 +103,26 @@ class Correios
 
         $options += $defaultOptions;
 
+        $param = $this->preparaParametrosCalculo($options);
+
+        if ($fix) {
+            $params = $this->ajustaPacote($params);
+        }
+
+        return [];
+    }
+
+    /**
+     * Este método recebe as opções do método de cálculo de frete e os
+     * transforma em parâmetros que poderão ser usados diretamente na chamada
+     * http ao endpoint de consulta do frete.
+     *
+     * @param array $options As opções vindas do método de cálculo de frete.
+     *
+     * @return array Parâmetros devidamente formatados.
+     */
+    protected function preparaParametrosCalculo(array $options = [])
+    {
         $paramsMap = [
             'usuario' => 'nCdEmpresa',
             'senha' => 'sDsSenha',
@@ -91,21 +146,8 @@ class Correios
             $params[$param] = $options[$opt];
         }
 
-        $param = $this->preparaParametrosCalculo($params);
-    }
-
-    protected function preparaParametrosCalculo(array $params = [])
-    {
         $params['sCdMaoPropria'] = $params['sCdMaoPropria'] === true ? 'S' : 'N';
         $params['sCdAvisoRecebimento'] = $params['sCdAvisoRecebimento'] === true ? 'S' : 'N';
-
-        if ($params['nVlPeso'] < 0.3) {
-            $params['nVlPeso'] = 0.3;
-        } elseif ($params['nVlPeso'] > 1 && $params['nCdFormato'] === self::ENVELOPE) {
-            $params['nVlPeso'] = 1;
-        } elseif ($params['nVlPeso'] > 30) {
-            $params['nVlPeso'] = 30;
-        }
 
         if (is_null($params['nCdEmpresa']) && !is_null($this->usuario)) {
             $params['nCdEmpresa'] = $this->usuario;
@@ -117,16 +159,29 @@ class Correios
 
         $params['nCdServico'] = implode(',', (array)$params['nCdServico']);
 
-        return $this->ajustaPacote($params);
+        return $params;
     }
 
     /**
      * Método que ajusta as dimensções de um determinado pacote para que o
      * cálculo aconteça corretamente.
-     * @link http://www2.correios.com.br/sistemas/precosprazos/Formato.cfm
+     *
+     * @link http://bit.ly/1JVa7Ls Especificações de tamanho.
+     *
+     * @param array $params Os parametros do cálculo do frete.
+     *
+     * @return array
      */
-    protected function ajustaPacote($params)
+    protected function ajustaPacote(array $params = [])
     {
+        if ($params['nVlPeso'] < 0.3) {
+            $params['nVlPeso'] = 0.3;
+        } elseif ($params['nVlPeso'] > 1 && $params['nCdFormato'] === self::ENVELOPE) {
+            $params['nVlPeso'] = 1;
+        } elseif ($params['nVlPeso'] > 30) {
+            $params['nVlPeso'] = 30;
+        }
+
         switch ($params['nCdFormato']) {
             case self::CAIXA:
                 $params['nVlDiametro'] = 0;
