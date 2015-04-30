@@ -9,6 +9,13 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
 
     public $correios;
 
+    protected function runProtectedMethod($obj, $method, $args = [])
+    {
+        $method = new \ReflectionMethod(get_class($obj), $method);
+        $method->setAccessible(true);
+        return $method->invokeArgs($obj, $args);
+    }
+
     public function setUp()
     {
         $this->correios = new Correios();
@@ -34,8 +41,50 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
             'nVlAltura' => 2
         ];
 
-        $result = $this->correios->ajustaPacote($params);
-
+        $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
         $this->assertEquals($result, $params);
+
+        $params = [
+            'nCdFormato' => 1,
+            'nVlDiametro' => 100,
+            'nVlComprimento' => 200,
+            'nVlLargura' => 200,
+            'nVlAltura' => 200
+        ];
+
+        $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
+
+        $expected = [
+            'nCdFormato' => 1,
+            'nVlDiametro' => 0,
+            'nVlComprimento' => 66,
+            'nVlLargura' => 66,
+            'nVlAltura' => 66
+        ];
+
+        $this->assertEquals($result, $expected);
+
+        $params = [
+            'nCdFormato' => 2,
+            'nVlDiametro' => 5,
+            'nVlComprimento' => 18,
+            'nVlLargura' => 11,
+            'nVlAltura' => 0
+        ];
+
+        $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
+        $this->assertEquals($result, $params);
+
+        $params = [
+            'nCdFormato' => 2,
+            'nVlDiametro' => 200,
+            'nVlComprimento' => 200,
+            'nVlLargura' => 200,
+            'nVlAltura' => 200
+        ];
+
+        $result = $this->runProtectedMethod($this->correios, 'ajustaPacote', [$params]);
+
+        var_dump($result); die();
     }
 }

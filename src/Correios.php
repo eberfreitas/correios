@@ -99,8 +99,12 @@ class Correios
         $params['sCdMaoPropria'] = $params['sCdMaoPropria'] === true ? 'S' : 'N';
         $params['sCdAvisoRecebimento'] = $params['sCdAvisoRecebimento'] === true ? 'S' : 'N';
 
-        if ($params['nVlPeso'] > 1 && $params['nCdFormato'] === self::ENVELOPE) {
+        if ($params['nVlPeso'] < 0.3) {
+            $params['nVlPeso'] = 0.3;
+        } elseif ($params['nVlPeso'] > 1 && $params['nCdFormato'] === self::ENVELOPE) {
             $params['nVlPeso'] = 1;
+        } elseif ($params['nVlPeso'] > 30) {
+            $params['nVlPeso'] = 30;
         }
 
         if (is_null($params['nCdEmpresa']) && !is_null($this->usuario)) {
@@ -116,7 +120,12 @@ class Correios
         return $this->ajustaPacote($params);
     }
 
-    public function ajustaPacote($params)
+    /**
+     * Método que ajusta as dimensções de um determinado pacote para que o
+     * cálculo aconteça corretamente.
+     * @link http://www2.correios.com.br/sistemas/precosprazos/Formato.cfm
+     */
+    protected function ajustaPacote($params)
     {
         switch ($params['nCdFormato']) {
             case self::CAIXA:
@@ -171,6 +180,7 @@ class Correios
                 break;
             case self::ROLO:
                 $params['nVlAltura'] = 0;
+                $params['nVlLargura'] = 0;
 
                 if ($params['nVlComprimento'] < 18) {
                     $params['nVlComprimento'] = 18;
@@ -209,6 +219,7 @@ class Correios
                 break;
             case self::ENVELOPE:
                 $params['nVlAltura'] = 0;
+                $params['nVlDiametro'] = 0;
 
                 if ($params['nVlComprimento'] < 16) {
                     $params['nVlComprimento'] = 16;
