@@ -1,6 +1,6 @@
 <?php
 
-namespace Eberfreitas\Correios;
+namespace Correios;
 
 /**
  * Correios
@@ -102,8 +102,7 @@ class Correios
         ];
 
         $options += $defaultOptions;
-
-        $param = $this->preparaParametrosCalculo($options);
+        $params = $this->preparaParametrosCalculo($options);
 
         if ($fix) {
             $params = $this->ajustaPacote($params);

@@ -20,12 +20,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Eberfreitas\\Correios\\": "src"
+            "Correios\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Eberfreitas\\Correios\\Test\\": "tests"
+            "Correios\\Test\\": "tests"
         }
     }
 }

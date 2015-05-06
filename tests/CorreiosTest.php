@@ -1,10 +1,10 @@
 <?php
 
-namespace Eberfreitas\Correios\Test;
+namespace Correios\Test;
 
-use Eberfreitas\Correios\Correios;
+use Correios\Correios;
 
-class ExampleTest extends \PHPUnit_Framework_TestCase
+class CorreiosTest extends \PHPUnit_Framework_TestCase
 {
 
     public $correios;
@@ -28,7 +28,7 @@ class ExampleTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructor()
     {
-        $this->assertInstanceOf('\Eberfreitas\Correios\Correios', $this->correios);
+        $this->assertInstanceOf('\Correios\Correios', $this->correios);
     }
 
     public function testAjustaPacote()
