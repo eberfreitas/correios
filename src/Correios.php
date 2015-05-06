@@ -111,9 +111,10 @@ class Correios
             $params = $this->ajustaPacote($params);
         }
 
-        $request = $this->httpAdapter->get($this->endpoints['calculo'], $params, $options);
+        $xml = $this->httpAdapter->get($this->endpoints['calculo'], $params, $options);
+        $data = $this->xmlToArray($xml);
 
-        return [];
+        return $data;
     }
 
     /**
@@ -302,5 +303,18 @@ class Correios
         }
 
         return $params;
+    }
+
+    /**
+     * Método simples pra transformar um xml em array
+     *
+     * @param string $xml O string do XML sendo manipulado.
+     *
+     * @return array
+     */
+    protected function xmlToArray($xml)
+    {
+        $xml = simplexml_load_string($xml);
+        return json_decode(json_encode($xml), true);
     }
 }
