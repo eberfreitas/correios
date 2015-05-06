@@ -31,7 +31,7 @@ class Correios
 
     /** @var array Lista de endpoints que serão utilizados para realizar consultas diversas. */
     protected $endpoints = [
-        'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx'
+        'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx'
     ];
 
     /**
@@ -54,12 +54,12 @@ class Correios
 
         $options += $defaultOptions;
 
-        /*if (is_null($options['http_adapter'])) {
+        if (is_null($options['http_adapter'])) {
             $this->httpAdapter = new Adapters\GuzzleAdapter();
         } else {
             $this->httpAdapter = $options['http_adapter'];
             //@TODO: check if the custom adapter implements the adapter interface
-        }*/
+        }
 
         $this->usuario = is_null($options['usuario']) ? null : $options['usuario'];
         $this->senha = is_null($options['senha']) ? null : $options['senha'];
@@ -71,27 +71,30 @@ class Correios
      *
      * @link http://bit.ly/1jwSH9i Documentação do webservice dos Correios.
      *
-     * @param array   $options Recebe um array com diversos valores que vão
+     * @param array   $config  Recebe um array com diversos valores que vão
      *     definir como o frete será calculado. Consultar a variável
-     *     `$defaultOptions` para saber quais são as chaves que devem ser
+     *     `$defaultConfig` para saber quais são as chaves que devem ser
      *     preenchidas e que tipo de valor elas aceitam.
      * @param boolean $fix     Se verdadeiro, este método irá corrigir qualquer
      *     irregularidade referente a tamanhos de pacotes, peso, etc., fazendo
      *     com que o valor do frete seja efetivamente calculado apesar da
      *     informação de valores errados.
+     * @param array   $options Possíveis opções que você queira passar ao
+     *     adapter que estiver sendo utilizado para realizar as requisições ao
+     *     webservice.
      *
      * @return array
      */
-    public function calculaFrete(array $options = [], $fix = true)
+    public function calculaFrete(array $config = [], $fix = true, array $options = [])
     {
-        $defaultOptions = [
+        $defaultConfig = [
             'usuario' => null,
             'senha' => null,
             'servicos' => [],
             'cep_origem' => '',
             'cep_destino' => '',
             'peso' => 0.3,
-            'formato' => 1,
+            'formato' => self::CAIXA,
             'comprimento' => 16,
             'altura' => 2,
             'largura' => 11,
@@ -101,12 +104,14 @@ class Correios
             'aviso_recebimento' => false
         ];
 
-        $options += $defaultOptions;
-        $params = $this->preparaParametrosCalculo($options);
+        $config += $defaultConfig;
+        $params = $this->preparaParametrosCalculo($config);
 
         if ($fix) {
             $params = $this->ajustaPacote($params);
         }
+
+        $request = $this->httpAdapter->get($this->endpoints['calculo'], $params, $options);
 
         return [];
     }
@@ -157,6 +162,8 @@ class Correios
         }
 
         $params['nCdServico'] = implode(',', (array)$params['nCdServico']);
+        $params['StrRetorno'] = 'xml';
+        $params['nIndicaCalculo'] = 3; // preço e prazo
 
         return $params;
     }

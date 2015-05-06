@@ -31,6 +31,30 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Correios\Correios', $this->correios);
     }
 
+    public function testCalculaFrete()
+    {
+        $config = [
+            'usuario' => null,
+            'senha' => null,
+            'servicos' => [Correios::SEDEX, Correios::PAC],
+            'cep_origem' => '08820400',
+            'cep_destino' => '21832150',
+            'peso' => 0.3,
+            'formato' => Correios::CAIXA,
+            'comprimento' => 16,
+            'altura' => 2,
+            'largura' => 11,
+            'diametro' => 5,
+            'mao_propria' => false,
+            'valor_declarado' => 0,
+            'aviso_recebimento' => false
+        ];
+
+        $data = $this->correios->calculaFrete($config);
+
+        print_r($data); die();
+    }
+
     public function testAjustaPacote()
     {
         $params = [
