@@ -74,6 +74,9 @@ class Correios
      *     adapter que estiver sendo utilizado para realizar as requisições ao
      *     webservice.
      *
+     * @throws \InvalidArgumentException Se o CEP tiver valor inválido.
+     * @throws \RuntimeException         Se nenhum endereço for encontrado.
+     *
      * @return array
      */
     public function endereco($cep, array $options = [])
