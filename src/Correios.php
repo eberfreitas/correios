@@ -31,7 +31,8 @@ class Correios
 
     /** @var array Lista de endpoints que serão utilizados para realizar consultas diversas. */
     protected $endpoints = [
-        'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx'
+        'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx',
+        'cep' => 'http://m.correios.com.br/movel/buscaCepConfirma.do'
     ];
 
     /**
@@ -58,11 +59,92 @@ class Correios
             $this->httpAdapter = new Adapters\GuzzleAdapter();
         } else {
             $this->httpAdapter = $options['http_adapter'];
-            //@TODO: check if the custom adapter implements the adapter interface
+            //@todo: check if the custom adapter implements the adapter interface
         }
 
         $this->usuario = is_null($options['usuario']) ? null : $options['usuario'];
         $this->senha = is_null($options['senha']) ? null : $options['senha'];
+    }
+
+    /**
+     * Pega o endereço a partir de um determinado CEP.
+     *
+     * @param string $cep     Qualquer CEP válido.
+     * @param array  $options Possíveis opções que você queira passar ao
+     *     adapter que estiver sendo utilizado para realizar as requisições ao
+     *     webservice.
+     *
+     * @return array
+     */
+    public function endereco($cep, array $options = [])
+    {
+        $cep = str_replace('-', '', $cep);
+
+        if (strlen($cep) !== 8 || !is_numeric($cep)) {
+            throw new \InvalidArgumentException('Use um valor de CEP válido!');
+        }
+
+        $body = [
+            'cepEntrada' => $cep,
+            'tipoCep' => '',
+            'cepTemp' => '',
+            'metodo' => 'buscarCep'
+        ];
+
+        $html = $this->httpAdapter->post($this->endpoints['cep'], $body, $options);
+        $html = \pQuery::parseStr($html);
+        $parts = $html->query('span.respostadestaque');
+        $addressParts = [];
+        $address = [];
+
+        foreach ($parts as $p) {
+            $addressParts[] = $p->getPlainText();
+        }
+
+        if (empty($addressParts)) {
+            throw new \RuntimeException('Nenhum endereço encontrado com este CEP!');
+        }
+
+        $partsCount = count($addressParts);
+
+        switch ($partsCount) {
+            case 2:
+                list($cidade, $estado) = explode('/', $addressParts[0]);
+
+                $address = [
+                    'logradouro' => null,
+                    'logradouro_extra' => null,
+                    'bairro' => null,
+                    'cidade' => utf8_encode(trim($cidade)),
+                    'estado' => utf8_encode(trim($estado)),
+                    'CEP' => utf8_encode(trim($addressParts[1]))
+                ];
+
+                break;
+            default:
+                list($cidade, $estado) = explode('/', $addressParts[2]);
+
+                $address = [
+                    'logradouro' => utf8_encode(trim($addressParts[0])),
+                    'logradouro_extra' => null,
+                    'bairro' => utf8_encode(trim($addressParts[1])),
+                    'cidade' => utf8_encode(trim($cidade)),
+                    'estado' => utf8_encode(trim($estado)),
+                    'CEP' => utf8_encode(trim($addressParts[3]))
+                ];
+
+                if (strpos($address['logradouro'], ' - ') !== false) {
+                    $extra = explode(' - ', $address['logradouro']);
+                    $street = array_shift($extra);
+                    $extra = implode(' - ', $extra);
+                    $address['logradouro'] = trim($street);
+                    $address['logradouro_extra'] = trim($extra);
+                }
+
+                break;
+        }
+
+        return $address;
     }
 
     /**

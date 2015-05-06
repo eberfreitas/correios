@@ -55,6 +55,41 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, count($data));
     }
 
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testEnderecoInvalido()
+    {
+        $data = $this->correios->endereco('nooooo');
+    }
+
+    /**
+     * @expectedException RuntimeException
+     */
+    public function testEnderecoInexistente()
+    {
+        $data = $this->correios->endereco('00000000');
+    }
+
+    public function testEndereco()
+    {
+        $data = $this->correios->endereco('08820400');
+        $this->assertNotEmpty($data);
+        $this->assertEquals('Rua Nilo Garcia Alabarce', $data['logradouro']);
+        $this->assertNull($data['logradouro_extra']);
+
+        $data = $this->correios->endereco('28970000');
+        $this->assertNotEmpty($data);
+        $this->assertNull($data['logradouro']);
+        $this->assertEquals('RJ', $data['estado']);
+        $this->assertEquals('Araruama', $data['cidade']);
+
+        $data = $this->correios->endereco('58030000');
+        $this->assertNotEmpty($data);
+        $this->assertNotNull($data['logradouro_extra']);
+        $this->assertEquals('Avenida Presidente Epitácio Pessoa', $data['logradouro']);
+    }
+
     public function testAjustaPacote()
     {
         $params = [

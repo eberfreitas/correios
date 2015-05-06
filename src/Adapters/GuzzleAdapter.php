@@ -28,4 +28,24 @@ class GuzzleAdapter implements AdapterInterface
         $response = (string)$request->getBody();
         return $response;
     }
+
+    /**
+     * Makes POST requests
+     *
+     * @param string $url     O endereço da requisição.
+     * @param array  $body    Array com as chaves e valores do corpo da requisição.
+     * @param array  $options Array com outras opções que possam ser usadas
+     *     pelo adapter na hora de realizar a requisição.
+     *
+     * @return string
+     */
+    public function post($url, array $body, array $options = [])
+    {
+        $client = new Client();
+        $defaultOptions = ['body' => $body];
+        $options += $defaultOptions;
+        $request = $client->post($url, $options);
+        $response = (string)$request->getBody();
+        return $response;
+    }
 }
