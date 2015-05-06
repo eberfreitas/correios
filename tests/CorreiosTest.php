@@ -52,7 +52,7 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
 
         $data = $this->correios->calculaFrete($config);
 
-        print_r($data); die();
+        $this->assertEquals(2, count($data));
     }
 
     public function testAjustaPacote()

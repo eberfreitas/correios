@@ -114,7 +114,7 @@ class Correios
         $xml = $this->httpAdapter->get($this->endpoints['calculo'], $params, $options);
         $data = $this->xmlToArray($xml);
 
-        return $data;
+        return $data['cServico'];
     }
 
     /**
@@ -314,7 +314,7 @@ class Correios
      */
     protected function xmlToArray($xml)
     {
-        $xml = simplexml_load_string($xml);
+        $xml = simplexml_load_string($xml, null, LIBXML_NOCDATA);
         return json_decode(json_encode($xml), true);
     }
 }
