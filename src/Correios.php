@@ -9,11 +9,11 @@ namespace Correios;
 class Correios
 {
 
+    const PAC = 41106;
     const SEDEX = 40010;
     const SEDEXACOBRAR = 40045;
     const SEDEX10 = 40215;
     const SEDEXHOJE = 40290;
-    const PAC = 41106;
     const ESEDEX = 81019;
 
     const CAIXA = 1;
@@ -90,7 +90,7 @@ class Correios
         $defaultConfig = [
             'usuario' => null,
             'senha' => null,
-            'servicos' => [],
+            'servicos' => [self::PAC, self::SEDEX],
             'cep_origem' => '',
             'cep_destino' => '',
             'peso' => 0.3,
