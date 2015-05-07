@@ -35,9 +35,18 @@ class CalculoTest extends \PHPUnit_Framework_TestCase
     public function testCalculaEntrega()
     {
         $date = new \DateTime('2015-05-07');
-        $entrega = $this->calculo->calculaEntrega($date);
-        $interval = $entrega->diff($date);
+        $end = $this->calculo->calculaEntrega($date);
+        $interval = $end->diff($date);
 
         $this->assertEquals('11', $interval->format('%a'));
+    }
+
+    public function testFormataValor()
+    {
+        $formated = $this->calculo->formataValor('valor');
+        $this->assertEquals('R$ 15,50', $formated);
+
+        $formated = $this->calculo->formataValor('valor', false);
+        $this->assertEquals('15,50', $formated);
     }
 }

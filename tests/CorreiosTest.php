@@ -76,6 +76,8 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
         $data = $this->correios->calculaFrete($config);
 
         $this->assertEquals(2, count($data));
+        $this->assertEquals('SEDEX', $data[0]->servico_descricao);
+        $this->assertEquals('40010', $data[0]['codigo']);
     }
 
     /**

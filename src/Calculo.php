@@ -12,6 +12,29 @@ class Calculo implements \ArrayAccess
     /** @var array Onde são guardados os dados do cálculo. */
     protected $raw = [];
 
+    /** @var array Mapa que conecta o número à descrição do serviço */
+    protected $serviceMap = [
+        '85480' => 'Aerograma',
+        '10014' => 'Carta Registrada',
+        '10030' => 'Carta Simples',
+        '16012' => 'Cartão Postal',
+        '81019' => 'e-SEDEX',
+        '20010' => 'Impresso',
+        '14036' => 'Mala Direta Postal Domiciliar',
+        '14010' => 'Mala Direta Postal Não Urgente',
+        '14028' => 'Mala Direta Postal Urgente',
+        '44105' => 'Malote',
+        '41106' => 'PAC',
+        '41300' => 'PAC Grandes Formatos',
+        '41262' => 'PAC Pagamento na Entrega',
+        '43010' => 'Reembolso Postal',
+        '40010' => 'SEDEX',
+        '40215' => 'SEDEX 10',
+        '40169' => 'SEDEX 12',
+        '40290' => 'SEDEX HOJE',
+        '40819' => 'SEDEX Pagamento na Entrega'
+    ];
+
     /**
      * Construtor da classe.
      *
@@ -59,6 +82,7 @@ class Calculo implements \ArrayAccess
         $newSet['valor_valor_declarado'] = $fixValue($newSet['valor_valor_declarado']);
         $newSet['entrega_domiciliar'] = $newSet['entrega_domiciliar'] === 'S' ? true : false;
         $newSet['entrega_sabado'] = $newSet['entrega_sabado'] === 'S' ? true : false;
+        $newSet['servico_descricao'] = $this->serviceMap[$newSet['codigo']];
 
         $this->raw = $newSet;
     }
@@ -84,6 +108,36 @@ class Calculo implements \ArrayAccess
         }
 
         return $toSend;
+    }
+
+    /**
+     * Formata um valor calculado de acordo com a regra de formatação monetária.
+     *
+     * @param string  $value  Chave do valor a ser formatado.
+     * @param boolean $prefix Coloca ou não o prefix `R$` na frente do valor
+     *     formatado.
+     *
+     * @throws \InvalidArgumentException Se o valor a ser formatado não existir.
+     *
+     * @return string Valor formatado.
+     */
+    public function formataValor($value, $prefix = true)
+    {
+        $whitelist = [
+            'valor',
+            'valor_sem_adicionais',
+            'valor_mao_propria',
+            'valor_aviso_recebimento',
+            'valor_valor_declarado'
+        ];
+
+        if (!in_array($value, $whitelist)) {
+            throw new \InvalidArgumentException('Escolha uma chave de valor válida para formatar!');
+        }
+
+        $pf = $prefix === true ? 'R$ ' : '';
+
+        return $pf . number_format($this->raw[$value], 2, ',', '.');
     }
 
     /**
@@ -137,5 +191,17 @@ class Calculo implements \ArrayAccess
     public function offsetGet($offset)
     {
         return isset($this->raw[$offset]) ? $this->raw[$offset] : null;
+    }
+
+    /**
+     * Magic method pra pegar os atributos como um objeto.
+     *
+     * @param string $attr Nome do atributo.
+     *
+     * @return mixed
+     */
+    public function __get($attr)
+    {
+        return $this->raw[$attr];
     }
 }
