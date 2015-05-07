@@ -31,6 +31,29 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Correios\Correios', $this->correios);
     }
 
+    public function testRastreamento()
+    {
+        $response = $this->correios->rastreamento('PE024442250BR');
+
+        $this->assertNotEmpty($response);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testRastreamentoInvalido()
+    {
+        $response = $this->correios->rastreamento('HAHAHA');
+    }
+
+    /**
+     * @expectedException RuntimeException
+     */
+    public function testRastreamentoInexistente()
+    {
+        $response = $this->correios->rastreamento('AA000000000AA');
+    }
+
     public function testCalculaFrete()
     {
         $config = [
@@ -81,7 +104,7 @@ class CorreiosTest extends \PHPUnit_Framework_TestCase
         $data = $this->correios->endereco('28970000');
         $this->assertNotEmpty($data);
         $this->assertNull($data['logradouro']);
-        $this->assertEquals('RJ', $data['estado']);
+        $this->assertEquals('RJ', $data['uf']);
         $this->assertEquals('Araruama', $data['cidade']);
 
         $data = $this->correios->endereco('58030000');

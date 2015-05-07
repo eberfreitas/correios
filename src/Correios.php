@@ -32,7 +32,8 @@ class Correios
     /** @var array Lista de endpoints que serão utilizados para realizar consultas diversas. */
     protected $endpoints = [
         'calculo' => 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx',
-        'cep' => 'http://m.correios.com.br/movel/buscaCepConfirma.do'
+        'cep' => 'http://m.correios.com.br/movel/buscaCepConfirma.do',
+        'rastreamento' => 'http://websro.correios.com.br/sro_bin/txect01%24.QueryList'
     ];
 
     /**
@@ -64,6 +65,100 @@ class Correios
 
         $this->usuario = is_null($options['usuario']) ? null : $options['usuario'];
         $this->senha = is_null($options['senha']) ? null : $options['senha'];
+    }
+
+    /**
+     * Retorna os dados de rastreio de um pacote.
+     *
+     * @param string $code    Um código de rastreio válido.
+     * @param array  $options Possíveis opções que você queira passar ao
+     *     adapter que estiver sendo utilizado para realizar as requisições ao
+     *     webservice.
+     *
+     * @throws \InvalidArgumentException Se o CEP tiver valor inválido.
+     * @throws \RuntimeException         Se nenhum endereço for encontrado.
+     *
+     * @return array
+     */
+    public function rastreamento($code, array $options = [])
+    {
+        $code = strtoupper($code);
+
+        if (preg_match('/^[A-Z]{2}[0-9]{9}[A-Z]{2}$/', $code) !== 1) {
+            throw new \InvalidArgumentException('Use um código de rastreio válido!');
+        }
+
+        $body = [
+            'P_LINGUA' => '001',
+            'P_TIPO' => '001',
+            'P_COD_UNI' => $code
+        ];
+
+        $html = $this->httpAdapter->post($this->endpoints['rastreamento'], $body, $options);
+        $tableStart = strpos($html, '<table');
+
+        if ($tableStart === false) {
+            throw new \RuntimeException('Não foi possível carregar os dados de rastreio!');
+        }
+
+        $tableEnd = strpos($html, '/TABLE>') + 7; //mais o comprimento "/TABLE>"
+        $tableLength = $tableEnd - $tableStart;
+        $table = substr($html, $tableStart, $tableLength);
+        $html = '<html><body>' . $table . '</body></html>';
+        $html = \pQuery::parseStr($html);
+        $tableCells = $html->query('table td');
+        $cellContents = [];
+
+        foreach ($tableCells as $cell) {
+            $cellContents[] = $cell->getPlainText();
+        }
+
+        $cellContents = array_slice($cellContents, 3); // cabeçalhos, não precisamos deles...
+        $raw = $data = [];
+        $eventIndex = null;
+        $i = 0;
+
+        foreach ($cellContents as $content) {
+            /**
+             * Cada vez que encontramos uma data quer dizer que estamos em um
+             * novo evento. Usamos o timestamp como chave pra separar os eventos
+             * em um array e organizar os dados.
+             */
+            if (preg_match('#^[0-3]\d/[0-1]\d/(19|20)\d\d [0-2]\d:[0-5]\d$#', $content) != false) {
+                $date = \DateTime::createFromFormat('d/m/Y H:i', $content);
+                $eventIndex = $date->getTimestamp();
+                $raw[$eventIndex] = [$date];
+            } else {
+                $raw[$eventIndex][] = $content;
+            }
+        }
+
+        ksort($raw);
+        $lastPlace = null;
+
+        foreach ($raw as $info) {
+            $parts = explode(' - ', $info[1]);
+
+            if (count($parts) > 1) {
+                $lastPlace = $parts[0];
+                $address = $parts[1];
+            } else {
+                $address = $parts[0];
+            }
+
+            list($city, $uf) = explode('/', $address);
+
+            $data[$i] = [];
+            $data[$i]['data'] = $info[0];
+            $data[$i]['descricao'] = $info[2];
+            $data[$i]['local'] = trim($lastPlace);
+            $data[$i]['cidade'] = trim($city);
+            $data[$i]['uf'] = trim($uf);
+
+            $i++;
+        }
+
+        return array_reverse($data);
     }
 
     /**
@@ -119,8 +214,8 @@ class Correios
                     'logradouro_extra' => null,
                     'bairro' => null,
                     'cidade' => utf8_encode(trim($cidade)),
-                    'estado' => utf8_encode(trim($estado)),
-                    'CEP' => utf8_encode(trim($addressParts[1]))
+                    'uf' => utf8_encode(trim($estado)),
+                    'cep' => utf8_encode(trim($addressParts[1]))
                 ];
 
                 break;
@@ -132,8 +227,8 @@ class Correios
                     'logradouro_extra' => null,
                     'bairro' => utf8_encode(trim($addressParts[1])),
                     'cidade' => utf8_encode(trim($cidade)),
-                    'estado' => utf8_encode(trim($estado)),
-                    'CEP' => utf8_encode(trim($addressParts[3]))
+                    'uf' => utf8_encode(trim($estado)),
+                    'cep' => utf8_encode(trim($addressParts[3]))
                 ];
 
                 if (strpos($address['logradouro'], ' - ') !== false) {
