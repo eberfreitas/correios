@@ -293,8 +293,13 @@ class Correios
 
         $xml = $this->httpAdapter->get($this->endpoints['calculo'], $params, $options);
         $data = $this->xmlToArray($xml);
+        $return = [];
 
-        return $data['cServico'];
+        foreach ($data['cServico'] as $d) {
+            $return[] = new Calculo($d);
+        }
+
+        return $return;
     }
 
     /**
