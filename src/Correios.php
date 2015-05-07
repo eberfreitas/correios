@@ -44,6 +44,9 @@ class Correios
      *     outro adaptador para realizar as chamadas aos endpoints, veja a
      *     documentação da lib.
      *
+     * @throws \InvalidArgumentException Se o http_adapter não implementa a
+     *     interface corretamente.
+     *
      * @return void
      */
     public function __construct(array $options = [])
@@ -60,7 +63,14 @@ class Correios
             $this->httpAdapter = new Adapters\GuzzleAdapter();
         } else {
             $this->httpAdapter = $options['http_adapter'];
-            //@todo: check if the custom adapter implements the adapter interface
+        }
+
+        $interfaces = class_implements($this->httpAdapter);
+
+        if (!in_array('Correios\Adapters\AdapterInterface', $interfaces)) {
+            throw new \InvalidArgumentException(
+                'O adaptador http precisa implementar a interface "Correios\Adapters\AdapterInterface"'
+            );
         }
 
         $this->usuario = is_null($options['usuario']) ? null : $options['usuario'];
