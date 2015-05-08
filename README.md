@@ -290,6 +290,79 @@ Chave                     | Tipo   | Descrição
 `msg_erro`                | string | Mensagem de erro.
 `servico_descricao`       | string | Descrição do serviço.
 
+####Calculando uma data de entrega
+
+Lembra que o resultado da consulta traz um objeto? Ele tem alguns métodos
+interessantes que podem te ajudar a manipular melhor os dados de retorno da
+consulta de preço e prazo. Um destes métodos é o `calculaEntrega`. Com ele a
+gente consegue ter uma data de estimativa de entrega. Veja:
+
+``` php
+$entrega = $calculado[0]->calculaEntrega(new DateTime('now'));
+
+print_r($entrega);
+```
+
+Que resulta neste output:
+
+```
+DateTime Object
+(
+    [date] => 2015-05-18 00:00:00
+    [timezone_type] => 3
+    [timezone] => UTC
+)
+```
+
+Veja que o método recebe um objeto DateTime e retorna um objeto `DateTime`
+representando a data de entrega. O método vai levar em consideração se, a partir
+da data de envio, a soma do prazo cai em algum dia do fim de semana, e ajusta
+a data para o próximo dia útil seguinte, a não ser que a entrega caia num sábado
+e o endereço de entrega possua o valor da chave `entrega_sabado` como `true`.
+
+####Formatando valores
+
+Você também pode retornar facilmente os valores de envio já formatados. Veja:
+
+``` php
+echo $calculado[0]->formataValor('valor');
+```
+
+Que resulta neste output:
+
+```
+R$ 15,50
+```
+
+O valor será formatado de acordo com o padrão monetário brasileiro. Se você
+quiser, pode omitir o prefixo "R$" passando `false` no segundo argumento:
+
+``` php
+echo $calculado[0]->formataValor('valor', talse); //15,50
+```
+
+####Ajuste inteligente de pacotes
+
+Nenhum dos valores de dimensões dos pacotes é obrigatório de ser preenchido.
+Desta forma a biblioteca usa padrões que fazem sentido pra maioria dos envios e
+deve retornar valores adequados. Se você quiser personalizar os valores das
+dimensões, a biblioteca automaticamente ajusta estes valores caso eles estejam
+fora dos padrões definidos pelos Correios. Existem diversas regras que definem
+quais são as dimensões permitidas, inclusive para cada tipo de formato
+diferente.
+
+Sendo assim, a biblioteca vai verificar qual o formato definido, as regras para
+este formato e vai tentar ajustar as dimensões para que o cálculo aconteça sem
+errors.
+
+Se você desejar que a biblioteca não faça este ajuste automaticamente, basta chamar
+o método da seguinte forma:
+
+``` php
+$config = []; //a configuração de sua chamada aqui...
+$calculado = $correios->calculaFrete($config, false);
+```
+
 ####Tabela de serviços
 
 Aqui estão alguns dos códigos e suas respectivas descrições para consulta:
