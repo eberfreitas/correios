@@ -5,10 +5,10 @@ Um pacote para interagir com serviços dos Correios.
 ##Recursos
 
 * [Encontra endereço a partir de um CEP](#encontrando-um-endereço-via-cep);
-* [Pega dados de rastreio de pacotes](#rastreando-um-pacote).
-* Calcula preços e prazos de entrega.
+* [Pega dados de rastreio de pacotes](#rastreando-um-pacote);
+* [Calcula preços e prazos de entrega](#calculando-valor-de-frete-e-prazo-de-entrega).
 
-Acha que está faltando algo? [Abra um issue](https://github.com/eberfreitas/correios/issues/new)!
+Acha que está faltando algo? [Abra um issue!](https://github.com/eberfreitas/correios/issues/new)
 
 ##Por quê?
 
@@ -46,12 +46,11 @@ Isto já deve ser suficiente para começar a utilizar a biblioteca. Opcionalment
 você pode configurar a sua instância de forma diferente. O construtor da classe
 aceita um array com as seguintes chaves:
 
-* `usuario` - Se você tiver contrato com os Correios, pode informar seu nome de
-  usuário aqui.
-* `senha` - Sua senha, caso tenha um usuário com cadastro nos Correios.
-* `http_adapter` - Aqui você pode passar um objeto que será responsável por
-  realizar as requisições HTTP de consulta aos webservices dos Correios. Veja
-  mais sobre este mais à frente na documentação.
+Chave          | Descrição
+---------------|----------
+`usuario`      | Se você tiver contrato com os Correios, pode informar seu nome de usuário aqui.
+`senha`        | Sua senha, caso tenha um usuário com cadastro nos Correios.
+`http_adapter` | Aqui você pode passar um objeto que será responsável por realizar as requisições HTTP de consulta aos webservices dos Correios. Veja mais sobre este mais à frente na documentação.
 
 Exemplo:
 
@@ -93,7 +92,7 @@ Array
 ```
 
 Chave              | Valor
--------------------|-------------------
+-------------------|------
 `logradouro`       | Aqui você encontra o nome da rua, avenida, praça, etc.
 `logradouro_extra` | Eventualmente algum CEP vai trazer informações extras com o lado (ímpar ou par) a que ele corresponde naquele logradouro ou qual a faixa de numeração (de 1001 a 2000).
 `bairro`           | O bairro deste CEP.
@@ -128,7 +127,6 @@ Array
                     [timezone_type] => 3
                     [timezone] => UTC
                 )
-
             [descricao] => Entrega Efetuada
             [local] => CEE JABOATAO DOS GUARARAPES
             [cidade] => Recife
@@ -142,7 +140,6 @@ Array
                     [timezone_type] => 3
                     [timezone] => UTC
                 )
-
             [descricao] => Saiu para entrega ao destinatio
             [local] => CTE RECIFE
             [cidade] => Recife
@@ -156,7 +153,6 @@ Array
                     [timezone_type] => 3
                     [timezone] => UTC
                 )
-
             [descricao] => Encaminhado
             [local] => CTE RECIFE
             [cidade] => Recife
@@ -171,7 +167,7 @@ cada evento relativo ao pacote sendo consultado. Cada entrada diz respeito a um
 evento e possui as seguintes chaves:
 
 Chave       | Valor
-------------|------------
+------------|------
 `data`      | Um objeto do tipo [DateTime](http://php.net/DateTime) representando o horário em que o evento aconteceu.
 `descricao` | A descrição do evento em questão.
 `local`     | Local onde o evento ocorreu. O nome do estabeleciomento dos Correios onde este evento ocorreu.
@@ -195,7 +191,7 @@ Para calcular o valor de uma entrega e seu prazo, basta utilizar o método
 $calculado = $correios->calculaFrete([
     'usuario' => null,
     'senha' => null,
-    'servicos' => [Correios\Correios::SEDEX, Correios\Correios::PAC],
+    'servicos' => [Correios\Correios::PAC],
     'cep_origem' => '08820400',
     'cep_destino' => '21832150',
     'peso' => 0.3,
@@ -216,26 +212,83 @@ Diferente dos outros métodos, este método recebe um array com um bocado mais
 de opções para que o cálculo seja realizado. Vamos dar uma olhada no que eles
 são:
 
-Chave               | Obrigatório? | Tipo      | Valor
---------------------|--------------|-----------|------
-`usuario`           | Não          | string    | Se você já preencheu o seu usuário na hora de criar a instância da biblioteca, não há necessidade de definir o usuário aqui novamente. Se você não tem um usuário também não é obrigado a definir um. O usuário e senha são necessários apenas para realizar o cálculo de envios especiais como e-Sedex, PAC com contrato, etc.
-`senha`             | Não          | string    | Veja descrição acima.
-`servicos`          | Sim          | array     | Aqui você pode fornecer os códigos de serviços que você deseja consultar num array. A biblioteca fornece constantes que podem te ajudar a escolher quais serviços você deseja consultar. Veja aqui a [tabela de serviços](#tabela-de-serviços). Você pode consultar por quantos serviços diferentes desejar.
-`cep_origem`        | Sim          | string    | CEP de origem do envio.
-`cep_destino`       | Sim          | string    | CEP de destino.
-`peso`              | Sim          | float|int | O peso do pacote em **kilos**, ou seja, para informar 500 gramas o valor deve ser `0.5` e assim por diante.
-`formato`           | Sim          | int       | Qual o formato do pacote. Recebe um número de 1 a 3 onde 1 = caixa, 2 = rolo, 3 = envelope. A classe fornece algumas constantes para auxiliar na definição deste valor: `CAIXA`, `ROLO` e `ENVELOPE`.
-`comprimento`       | Não          | int       | O comprimento do pacote.
-`altura`            | Não          | int       | A altura do pacote.
-`largura`           | Não          | int       | A largura do pacote.
-`diametro`          | Não          | int       | O diametro do pacote.
-`mao_propria`       | Não          | bool      | Define se o envio deve utilizar o serviço de [mão própria](http://www.correios.com.br/para-voce/correios-de-a-a-z/mao-propria-mp) ou não (altera o valor do envio).
-`valor_declarado`   | Não          | float     | O valor daquilo que está sendo enviado para contratação de seguro (altera o valor do envio).
-`aviso_recebimento` | Não          | bool      | Define se o envio deve utilizar o serviço de [aviso de recebimento](http://www.correios.com.br/para-voce/correios-de-a-a-z/aviso-de-recebimento-ar) ou não (altera o valor do envio).
+Chave               | Obrigatório? | Tipo   | Valor
+--------------------|--------------|--------|------
+`usuario`           | Não          | string | Se você já preencheu o seu usuário na hora de criar a instância da biblioteca, não há necessidade de definir o usuário aqui novamente. Se você não tem um usuário também não é obrigado a definir um. O usuário e senha são necessários apenas para realizar o cálculo de envios especiais como e-Sedex, PAC com contrato, etc.
+`senha`             | Não          | string | Veja descrição acima.
+`servicos`          | Sim          | array  | Aqui você pode fornecer os códigos de serviços que você deseja consultar num array. A biblioteca fornece constantes que podem te ajudar a escolher quais serviços você deseja consultar. Veja aqui a [tabela de serviços](#tabela-de-serviços). Você pode consultar por quantos serviços diferentes desejar.
+`cep_origem`        | Sim          | string | CEP de origem do envio.
+`cep_destino`       | Sim          | string | CEP de destino.
+`peso`              | Sim          | float  | O peso do pacote em **kilos**, ou seja, para informar 500 gramas o valor deve ser `0.5` e assim por diante.
+`formato`           | Sim          | int    | Qual o formato do pacote. Recebe um número de 1 a 3 onde 1 = caixa, 2 = rolo, 3 = envelope. A classe fornece algumas constantes para auxiliar na definição deste valor: `CAIXA`, `ROLO` e `ENVELOPE`.
+`comprimento`       | Não          | int    | O comprimento do pacote.
+`altura`            | Não          | int    | A altura do pacote.
+`largura`           | Não          | int    | A largura do pacote.
+`diametro`          | Não          | int    | O diametro do pacote.
+`mao_propria`       | Não          | bool   | Define se o envio deve utilizar o serviço de [mão própria](http://www.correios.com.br/para-voce/correios-de-a-a-z/mao-propria-mp) ou não (altera o valor do envio).
+`valor_declarado`   | Não          | float  | O valor daquilo que está sendo enviado para contratação de seguro (altera o valor do envio).
+`aviso_recebimento` | Não          | bool   | Define se o envio deve utilizar o serviço de [aviso de recebimento](http://www.correios.com.br/para-voce/correios-de-a-a-z/aviso-de-recebimento-ar) ou não (altera o valor do envio).
 
 Os valores não obrigatórios serão preenchidos por valores padrão minimamente
 sãos. Fique de olho para garantir que o valor calculado esteja de acordo com as
 reais condições de envio.
+
+A chamada acima vai produzir o seguinte output:
+
+```
+Array
+(
+    [0] => Correios\Calculo Object
+        (
+            [raw:protected] => Array
+                (
+                    [codigo] => 41106
+                    [valor] => 15.5
+                    [prazo_entrega] => 11
+                    [valor_sem_adicionais] => 15.5
+                    [valor_mao_propria] => 0
+                    [valor_aviso_recebimento] => 0
+                    [valor_valor_declarado] => 0
+                    [entrega_domiciliar] => 1
+                    [entrega_sabado] =>
+                    [erro] => 010
+                    [msg_erro] => O CEP de destino está sujeito a condições especiais de entrega  pela  ECT e será realizada com o acréscimo de até 7 (sete) dias ao prazo regular.
+                    [servico_descricao] => PAC
+                )
+
+            [serviceMap:protected] => Array
+                (
+                    //...
+                )
+        )
+)
+```
+
+Veja que temos um retorno de um array cujos elementos são instâncias da classe
+`Correios\Calculo`. Esta é uma classe simples que de dá acesso aos dados do
+resultado da consulta como um array ou um objeto:
+
+``` php
+echo $calculado[0]['codigo']; //41106
+echo $calculado[0]->valor; //15.5
+```
+
+Os dados disponíveis são os seguintes:
+
+Chave                     | Tipo   | Descrição
+--------------------------|--------|----------
+`codigo`                  | string | Código do serviço referente a esta consulta.
+`valor`                   | float  | Valor total do envio.
+`prazo_entrega`           | int    | Número de dias para entrega.
+`valor_sem_adicionais`    | float  | Valor do envio sem os serviços adicionais.
+`valor_mao_propria`       | float  | Valor do serviço de mão própria.
+`valor_aviso_recebimento` | float  | Valor do serviço de aviso de recebimento.
+`valor_valor_declarado`   | float  | Valor do seguro.
+`entrega_domiciliar`      | bool   | Informa se a localidade informada possui entrega domiciliária.
+`entrega_sabado`          | bool   | Informa se a localidade informada possui entrega domiciliária aos sábados.
+`erro`                    | string | Código de erro.
+`msg_erro`                | string | Mensagem de erro.
+`servico_descricao`       | string | Descrição do serviço.
 
 ####Tabela de serviços
 
