@@ -14,7 +14,7 @@ Acha que está faltando algo? [Abra um issue!](https://github.com/eberfreitas/co
 
 Já existem [diversos pacotes](https://packagist.org/search/?q=correios) que
 trabalham com os serviços dos Correios, mas sempre existia algo que me impedia
-de usar algum dele, seja porque ele havia sido feito especificamente para algum
+de usar algum deles, seja porque ele havia sido feito especificamente para algum
 software ou framework, ou porque ele não tinha todos os recursos que eu
 precisava, etc. A ideia então foi tentar um novo pacote com os seguintes
 objetivos:
@@ -50,7 +50,7 @@ Chave          | Descrição
 ---------------|----------
 `usuario`      | Se você tiver contrato com os Correios, pode informar seu nome de usuário aqui.
 `senha`        | Sua senha, caso tenha um usuário com cadastro nos Correios.
-`http_adapter` | Aqui você pode passar um objeto que será responsável por realizar as requisições HTTP de consulta aos webservices dos Correios. Veja mais sobre este mais à frente na documentação.
+`http_adapter` | Aqui você pode passar um objeto que será responsável por realizar as requisições HTTP de consulta aos webservices dos Correios. Saiba mais sobre isto [aqui](#usando-um-http-adapter-diferente).
 
 Exemplo:
 
@@ -65,7 +65,7 @@ $correios = new Correios\Correios([
 ```
 
 Embora você tenha a opção de providenciar um adaptador, se você não indicar
-nenhum, a biblioteca irá utilizar o `GuzzleHttp` por padrão.
+nenhum, a biblioteca irá utilizar o `Guzzle` por padrão.
 
 ###Encontrando um endereço via CEP
 
@@ -170,13 +170,13 @@ Chave       | Valor
 ------------|------
 `data`      | Um objeto do tipo [DateTime](http://php.net/DateTime) representando o horário em que o evento aconteceu.
 `descricao` | A descrição do evento em questão.
-`local`     | Local onde o evento ocorreu. O nome do estabeleciomento dos Correios onde este evento ocorreu.
+`local`     | O nome do estabeleciomento dos Correios onde este evento ocorreu.
 `cidade`    | Cidade onde o evento ocorreu.
 `uf`        | Sigla do estado onde o evento ocorreu.
 
 **Uma nota sobre a consulta de pacotes**: Os Correios fornecem um webservice
 específico para a consulta de pacotes, porém este webservice é reservado a
-clientes que possuem contrato com os Correios. Sendo assim, nós realizamos um
+clientes que possuem contrato. Sendo assim, a biblioteca realiza um
 processo de "web scraping" para extrair os dados de páginas comuns de consulta.
 Embora a página sendo utilizada já tenha demonstrado uma estabilidade de anos
 no que diz respeito à sua estrutura, qualquer alteração no HTML desta página
@@ -208,7 +208,7 @@ $calculado = $correios->calculaFrete([
 print_r($calculado);
 ```
 
-Diferente dos outros métodos, este método recebe um array com um bocado mais
+Diferente dos outros métodos, este método recebe um array com um bocado
 de opções para que o cálculo seja realizado. Vamos dar uma olhada no que eles
 são:
 
@@ -264,7 +264,7 @@ Array
 )
 ```
 
-Veja que temos um retorno de um array cujos elementos são instâncias da classe
+Veja que temos o retorno de um array cujos elementos são instâncias da classe
 `Correios\Calculo`. Esta é uma classe simples que de dá acesso aos dados do
 resultado da consulta como um array ou um objeto:
 
@@ -314,7 +314,7 @@ DateTime Object
 )
 ```
 
-Veja que o método recebe um objeto DateTime e retorna um objeto `DateTime`
+Veja que o método recebe um objeto `DateTime` e retorna um objeto `DateTime`
 representando a data de entrega. O método vai levar em consideração se, a partir
 da data de envio, a soma do prazo cai em algum dia do fim de semana, e ajusta
 a data para o próximo dia útil seguinte, a não ser que a entrega caia num sábado
@@ -340,6 +340,9 @@ quiser, pode omitir o prefixo "R$" passando `false` no segundo argumento:
 ``` php
 echo $calculado[0]->formataValor('valor', talse); //15,50
 ```
+
+Você pode realizar esta formatação para qualquer chave de valor suprida pela
+consulta.
 
 ####Ajuste inteligente de pacotes
 
@@ -389,4 +392,26 @@ Código | Descrição
 40290  | SEDEX HOJE
 40819  | SEDEX Pagamento na Entrega
 
+###Usando um http adapter diferente
+
+Por padrão a biblioteca irá usar o [Guzzle](https://packagist.org/packages/guzzlehttp/guzzle)
+para realizar as requisições http aos endpoints dos webservices e páginas usados
+pela biblioteca. Se você quiser, poderá utilizar outro pacote no lugar do
+`Guzzle` fornecendo um novo objeto na hora de instanciar a classe dos Correios.
+
+Para isto você deve criar uma classe intermediária que implemente a interface
+`Correios\Adapters\AdapterInterface` que possui apenas dois métodos: `get` e
+`post`.
+
+Ambos os métodos devem retornar uma `string` representando o corpo da resposta
+da requisição e qualquer erro no processo de requisição deve ser indicado
+através da utilização de exceptions.
+
+Veja uma implementação exemplo
+[aqui](https://github.com/eberfreitas/correios/blob/master/src/Adapters/GuzzleAdapter.php).
+
 ##Créditos
+
+* Criado por [Éber F. Dias](https://github.com/eberfreitas)
+* Com o auxilio de [Tiago Correa](https://github.com/tiagocorrea)
+* Patrocinado por [Tanlup](https://github.com/tanlup/)
