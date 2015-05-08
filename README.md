@@ -4,9 +4,9 @@ Um pacote para interagir com serviços dos Correios.
 
 ##Recursos
 
-* Calcula preços e prazos de entrega;
-* Encontra endereço a partir de um CEP;
-* Pega dados de rastreio de pacotes.
+* [Encontra endereço a partir de um CEP](#encontrando-um-endereço-via-cep);
+* [Pega dados de rastreio de pacotes](#rastreando-um-pacote).
+* Calcula preços e prazos de entrega.
 
 Acha que está faltando algo? [Abra um issue](https://github.com/eberfreitas/correios/issues/new)!
 
@@ -92,20 +92,20 @@ Array
 )
 ```
 
-* `logradouro` - Aqui você encontra o nome da rua, avenida, praça, etc;
-* `logradouro_extra` - Eventualmente algum CEP vai trazer informações extras
-  com o lado (ímpar ou par) a quele ele corresponde naquele logradouro ou qual
-  a faixa de numeração (de 1001 a 2000);
-* `bairro` - O bairro deste CEP;
-* `cidade` - A cidade;
-* `uf` - A sigla do estado;
-* `cep` - A repetição do CEP consultado.
+Chave            | Valor
+-----------------|-----------------
+logradouro       | Aqui você encontra o nome da rua, avenida, praça, etc.
+logradouro_extra | Eventualmente algum CEP vai trazer informações extras com o lado (ímpar ou par) a quele ele corresponde naquele logradouro ou qual a faixa de numeração (de 1001 a 2000).
+bairro           | O bairro deste CEP.
+cidade           | A cidade.
+uf               | A sigla do estado.
+cep              | A repetição do CEP consultado.
 
 No caso de falha na consulta serão emitidos exceptions. Fique atento para
 pegá-los quando necessário.
 
 ###Rastreando um pacote
 
-...
+Para rastrear um pacote basta utilizar o método `rastreamento`:
 
 ##Créditos
