@@ -305,6 +305,10 @@ class Correios
         $data = $this->xmlToArray($xml);
         $return = [];
 
+        if (empty($data['cServico'][0])) {
+            $data['cServico'] = [$data['cServico']];
+        }
+
         foreach ($data['cServico'] as $d) {
             $return[] = new Calculo($d);
         }
